@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  folder-access-control:
+    image: poktscan/pocket-core:BETA-MESH-RC-0.5.0-RC-0.11.1
+    user: root
+    restart: "no"
+    entrypoint: [ "/home/app/fix_permissions.sh", "/home/app/.pocket"]
+    volumes:
+      - "./node/.pocket/:/home/app/.pocket/"
+  pocket-node:
+    image: poktscan/pocket-core:BETA-MESH-RC-0.5.0-RC-0.11.1
+    container_name: pocket-node
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      - POCKET_CORE_PASSPHRASE=${POCKET_CORE_PASSPHRASE}
+      - POCKET_CORE_KEY=${POCKET_CORE_KEY}
+      - POCKET_CORE_ADDRESS=${POCKET_CORE_ADDRESS}
+    command: ["pocket", "start", "--mainnet",  "--datadir=/home/app/.pocket"]
+    depends_on:
+      - folder-access-control
+    volumes:
+      - "./node/.pocket/:/home/app/.pocket/"
+    ports:
+      # Pocket JSON-RPC
+      - "8081:8081"
+      # Prometheus Metrics  
+      - "8083:8083"
+      # Tendermint P2P   
+      - "26656:26656"
+      # Tendermint JSON-RPC
+      - "26657:26657"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+        compress: "true"

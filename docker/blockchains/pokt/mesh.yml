@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  folder-access-control:
+    image: poktscan/pocket-core:BETA-MESH-RC-0.5.0-RC-0.11.1
+    user: root
+    restart: "no"
+    entrypoint: [ "/home/app/fix_permissions.sh", "/home/app/.pocket"]
+    volumes:
+      - "./node/.pocket/:/home/app/.pocket/"
+  pocket-mesh:
+    image: poktscan/pocket-core:MESH-RC-0.4.2-RC-0.11.1
+    container_name: pocket-mesh
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: ["pocket", "start-mesh", "--datadir=/home/app/.pocket"]
+    depends_on:
+      - pocket-node
+    volumes:
+      - "./mesh/.pocket:/home/app/.pocket"
+    ports:
+      # Pocket JSON-RPC (Default: 8081)
+      - "8082:8082"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+        compress: "true"

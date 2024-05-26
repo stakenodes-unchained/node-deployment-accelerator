@@ -1,0 +1,59 @@
+version: "3.8"
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "3"
+
+services:
+  folder-access-control:
+    image: poktscan/pocket-core:BETA-MESH-RC-0.5.0-RC-0.11.1
+    user: root
+    restart: "no"
+    entrypoint: [ "/home/app/fix_permissions.sh", "/home/app/.pocket"]
+    volumes:
+      - "./node/.pocket/:/home/app/.pocket/"
+  pocket-node:
+    <<: *logging
+    image: poktscan/pocket-core:BETA-MESH-RC-0.5.0-RC-0.11.1
+    container_name: pocket-node
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: ["pocket", "start", "--mainnet", "--datadir=/home/app/.pocket", "--keybase=false"]
+    depends_on:
+      - folder-access-control
+    volumes:
+      - "./node/.pocket/:/home/app/.pocket/"
+    ports:
+      # Pocket JSON-RPC
+      - "8081:8081"
+      # Prometheus Metrics  
+      - "8083:8083"
+      # Tendermint P2P   
+      - "26656:26656"
+      # Tendermint JSON-RPC
+      - "26657:26657"
+  pocket-mesh:
+    <<: *logging
+    image: poktscan/pocket-core:MESH-RC-0.4.2-RC-0.11.1
+    container_name: pocket-mesh
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: ["pocket", "start-mesh", "--datadir=/home/app/.pocket"]
+    depends_on:
+      - pocket-node
+    volumes:
+      - "./mesh/.pocket:/home/app/.pocket"
+    ports:
+      # Pocket JSON-RPC (Default: 8081)
+      - "8082:8082"

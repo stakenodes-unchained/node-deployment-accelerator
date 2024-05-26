@@ -1,0 +1,117 @@
+version: '3.6'
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "3"
+
+services:
+  rabbitmq:
+    <<: *logging
+    image: rabbitmq:3-alpine
+    container_name: matic-rabbitmq
+    restart: unless-stopped
+    expose:
+      - 5672
+
+  heimdall:
+    <<: *logging
+    image: 0xpolygon/heimdall:latest
+    container_name: matic-heimdall
+    restart: unless-stopped
+    depends_on:
+      - rabbitmq
+    command:
+      - start
+      - --chain=mainnet
+      - --home=/heimdall-home
+      - --p2p.laddr=tcp://0.0.0.0:26656
+      - --rpc.laddr=tcp://0.0.0.0:26657
+      - --eth_rpc_url=<your ethereum endpoint>
+      - --bor_rpc_url=http://bor-rpcdaemon:8555
+      - --amqp_url=amqp://guest:guest@rabbitmq:5672/
+      - --rest-server
+    volumes:
+      - ./heimdall:/heimdall-home
+    ports:
+      # P2P TCP (Default: 26656)
+      - 26656:26656 # P2P
+      # RPC TCP (Default: 26657)
+      - 26657:26657
+      # Heimdall REST API
+      - 1317:1317
+
+  bor:
+    <<: *logging
+    image: thorax/erigon:v2.59.3
+    container_name: matic-bor
+    user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
+    restart: unless-stopped
+    depends_on:
+      - heimdall
+    command:
+      - --chain=bor-mainnet
+      - --bor.milestone
+      - --downloader.verify
+      - --torrent.verbosity=3
+      - --prune=htc
+      - --db.pagesize=16k
+      - --rpc.returndata.limit=300000
+      - --private.api.addr=0.0.0.0:9090
+      - --http.addr=0.0.0.0
+      - --datadir=/home/erigon/.local/share/erigon
+      - --bor.heimdall=http://heimdall:1317
+      - --nat=extip:<host IP> # Replace with host IP address
+      - --torrent.port=42069
+      - --torrent.download.rate=1000mb
+      - --torrent.download.slots=10
+      - --port=30303
+      - --maxpeers=300
+      - --p2p.allowed-ports=30304,30305,30306
+      - --p2p.protocol=66,67
+      - --bootnodes=enode://b8f1cc9c5d4403703fbf377116469667d2b1823c0daf16b7250aa576bacf399e42c3930ccfcb02c5df6879565a2b8931335565f0e8d3f8e72385ecf4a4bf160a@3.36.224.80:30303,enode://8729e0c825f3d9cad382555f3e46dcff21af323e89025a0e6312df541f4a9e73abfa562d64906f5e59c51fe6f0501b3e61b07979606c56329c020ed739910759@54.194.245.5:30303
+    volumes:
+      - ./bor:/home/erigon/.local/share/erigon
+    expose:
+      - 8551
+      - 9090
+    Ports:
+      # P2P TCP (Default: 30303)
+      - 30303:30303/tcp
+      # P2P UDP (Default: 30303)
+      - 30303:30303/udp
+      # BitTorrent TCP (Default: 42069)
+      - 42069:42069/tcp
+      # BitTorrent UDP (Default: 42069)
+      - 42069:42069/udp
+      # Additional P2P Allowed Ports
+      - 30304-30306:30304-30306
+
+  bor-rpcdaemon:
+    <<: *logging
+    image: thorax/erigon:v2.59.3
+    container_name: matic-rpcdaemon
+    restart: unless-stopped
+    user:  ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
+    pid: service:bor
+    entrypoint: rpcdaemon
+    command:
+      - --datadir=/home/erigon/.local/share/erigon
+      - --http.port=8555
+      - --ws
+      - --http.api=eth,erigon,web3,net,debug,trace,txpool
+      - --http.addr=0.0.0.0
+      - --http.vhosts=*
+      - --http.corsdomain=*
+      - --private.api.addr=bor:9090
+      - --db.read.concurrency=512
+      - --rpc.batch.concurrency=32
+    depends_on:
+      - bor
+    volumes_from:
+      - bor
+    ports:
+      # RPC TCP (Default: 8545)
+      - 8545:8545
