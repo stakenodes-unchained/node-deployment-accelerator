@@ -8,13 +8,6 @@ x-logging: &logging
       max-file: "3"
 
 services:
-  folder-access-control:
-    image: poktscan/pocket-core:BETA-MESH-RC-0.5.0-RC-0.11.1
-    user: root
-    restart: "no"
-    entrypoint: [ "/home/app/fix_permissions.sh", "/home/app/.pocket"]
-    volumes:
-      - "./node/.pocket/:/home/app/.pocket/"
   pocket-node:
     <<: *logging
     image: poktscan/pocket-core:BETA-MESH-RC-0.5.0-RC-0.11.1
@@ -26,8 +19,6 @@ services:
       timeout: 10s
       retries: 3
     command: ["pocket", "start", "--mainnet", "--datadir=/home/app/.pocket", "--keybase=false"]
-    depends_on:
-      - folder-access-control
     volumes:
       - "./node/.pocket/:/home/app/.pocket/"
     ports:
