@@ -202,7 +202,12 @@ Again, using your preferred text editor, update `mesh/.pocket/key/key.json` with
   }
 ]
 ```
+**Note:** It's advisable to begin by launching the servicer node with the command `docker-compose -f servicer-mesh.yml up -d pocket-node`, and subsequently, copy the `auth.json` file to the servicer node directory. 
 
+```sh
+cp node/.pocket/config/auth.json mesh/.pocket/auth/servicer.json
+cp node/.pocket/config/auth.json mesh/.pocket/auth/mesh.json
+```
 </details>
 
 <details>
@@ -280,6 +285,15 @@ Using your preferred text editor, modify the `node/.pocket/config/config.json` f
 "mesh_node": false,
 ```
 </details>
+
+#### 4. Snaphshot download 
+
+Using a snapshot to deploy your node can significantly reduce the time required for initial synchronization. Instead of downloading and verifying all historical blocks, the snapshot provides a recent state of the blockchain, allowing your node to quickly catch up to the current network state. Copy and paste the following commands to download and extract the latest [snapshot](https://pocket-snapshot-us.liquify.com/#/).
+
+```
+wget -O downloaded_snap.tar https://pocket-snapshot-us.liquify.com/files/pruned/$(curl -s https://pocket-snapshot-us.liquify.com/files/pruned/latest.txt) && tar -xvf downloaded_snap.tar -C node/.pocket/ && rm downloaded_snap.tar
+```
+
 
 ## Nginx Setup
 
