@@ -270,6 +270,7 @@ cd docker/blockchains/pokt
 If necessary, ensure correct permissions on the `pokt` folder:
 ```sh
 chown -R 1005:1005 node/.pocket
+```
 
 Make a copy of the `example.env` to `.env`
 ```sh
@@ -296,7 +297,7 @@ Using your preferred text editor, modify the `node/.pocket/config/config.json` f
 ```
 </details>
 
-#### 4. Snaphshot download 
+#### 3. Snaphshot download 
 
 Using a snapshot to deploy your node can significantly reduce the time required for initial synchronization. Instead of downloading and verifying all historical blocks, the snapshot provides a recent state of the blockchain, allowing your node to quickly catch up to the current network state. Copy and paste the following commands to download and extract the latest [snapshot](https://pocket-snapshot-us.liquify.com/#/).
 
