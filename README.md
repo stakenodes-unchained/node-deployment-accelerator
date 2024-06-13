@@ -182,7 +182,7 @@ chown -R 1005:1005 node/.pocket
 
 Ensure you have the latest `addrbook.json` for the servicer node:
 ```sh
-wget -O pokt/node/.pocket/config/addrbook.json https://pocket-snapshot-us.liquify.com/files/addrbook.json
+wget -O node/.pocket/config/addrbook.json https://pocket-snapshot-us.liquify.com/files/addrbook.json
 ```
 
 Using your preferred text editor, modify the `node/.pocket/config/config.json` file with your node's IP address and Tendermint port (26656):
@@ -190,12 +190,21 @@ Using your preferred text editor, modify the `node/.pocket/config/config.json` f
 "ExternalAddress"="tcp://YOUR_NODE_IP_ADDRESS:26656"
 ```
 
-Again, using your preferred text editor, update `mesh/.pocket/key/key.json` with your pocket node wallet private keys. Also replace the pocket `endpoint` to reflect the `IP:PORT` or `FQDN` of your servicer node running in your primary site.
+Using your preferred text editor, update `node/.pocket/lean_nodes_keys.json` with your pocket node wallet private key(s). 
+```
+[
+   {
+      "priv_key":""
+   }
+]
+```
+
+Again, using your preferred text editor, update `mesh/.pocket/key/key.json` with your pocket node wallet private key(s).
 ```
 [
   {
     "name": "",
-    "url": "http://servicer.us.exmaple",
+    "url": "http://pocket-node:8081",
     "keys": [
       ""
     ]
@@ -205,6 +214,7 @@ Again, using your preferred text editor, update `mesh/.pocket/key/key.json` with
 **Note:** It's advisable to begin by launching the servicer node with the command `docker-compose -f servicer-mesh.yml up -d pocket-node`, and subsequently, copy the `auth.json` file to the servicer node directory. 
 
 ```sh
+mkdir mesh/.pocket/auth
 cp node/.pocket/config/auth.json mesh/.pocket/auth/servicer.json
 cp node/.pocket/config/auth.json mesh/.pocket/auth/mesh.json
 ```
@@ -226,7 +236,7 @@ If necessary, ensure correct permissions on the `pokt` folder:
 chown -R 1005:1005 mesh/.pocket
 ```
 
-Using your preferred text editor, update `mesh/.pocket/key/key.json` with your pocket node wallet private keys. Also replace the pocket `endpoint` to reflect the `IP:PORT` or `FQDN` of your servicer node running in your primary site.
+Again, using your preferred text editor, update `mesh/.pocket/key/key.json` with your pocket node wallet private key(s). Also replace the pocket `URL` to reflect the `IP:PORT` or `FQDN` of your servicer node running in your primary site.
 ```
 [
   {
@@ -268,7 +278,7 @@ cp example.env .env
 
 Ensure you have the latest `addrbook.json` for the servicer node:
 ```sh
-wget -O pokt/node/.pocket/config/addrbook.json https://pocket-snapshot-us.liquify.com/files/addrbook.json
+wget -O node/.pocket/config/addrbook.json https://pocket-snapshot-us.liquify.com/files/addrbook.json
 ```
 
 Update the contents of the `.env` file
