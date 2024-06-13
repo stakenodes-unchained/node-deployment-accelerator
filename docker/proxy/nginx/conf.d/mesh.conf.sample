@@ -1,0 +1,36 @@
+# mesh.conf.sample
+#
+# This is a sample Nginx configuration file.
+# Rename this file to mesh.conf to use it.
+# Example: mv mesh.conf.sample mesh.conf
+#
+# YOUR_DOMAIN_HERE = Actual domain name. e.g *.subdomain.example.com
+
+upstream mesh_node {
+    server host.docker.internal:8082;
+}
+
+server {
+    listen 443 ssl;
+    server_name <YOUR_DOMAIN_HERE>;
+    add_header Access-Control-Allow-Origin "*";
+
+    ssl_certificate /etc/letsencrypt/live/<YOUR_DOMAIN_HERE>/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/<YOUR_DOMAIN_HERE>/privkey.pem;
+
+    location = /v1 {
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_pass http://mesh_node;
+        add_header Access-Control-Allow-Methods "POST, OPTIONS";
+        allow all;
+    }
+
+    location = /v1/client/relay {
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_pass http://mesh_node;
+        add_header Access-Control-Allow-Methods "POST, OPTIONS";
+        allow all;
+    }
+}
