@@ -14,7 +14,6 @@
 6. [License](#license)
 
 
-
 # Overview
 Node Deployment Accelerator (NDA) is an innovative GitHub repository designed to simplify the deployment process for various blockchains. It streamlines the setup of blockchain nodes, empowering users to initiate their desired blockchain deployment effortlessly.
 
@@ -166,7 +165,7 @@ pocket-node:
 <details>
 <summary>Method 1 - Primary Site (Region)</summary>
 <br> </br> 
-For your **primary site**, use the `servicer-mesh.yml` deployment strategy to deploy two node instances. You can deploy a validator node or a servicer node to service any region. However, it is strongly recommended to deploy a mesh node in front of your servicer node to minimize relay processing time. In this setup, the mesh node will handle all the relays, while the servicer nodes process them.
+For your <b>primary site</b>, use the `servicer-mesh.yml` deployment strategy to deploy two node instances. You can deploy a validator node or a servicer node to service any region. However, it is strongly recommended to deploy a mesh node in front of your servicer node to minimize relay processing time. In this setup, the mesh node will handle all the relays, while the servicer nodes process them.
 <br></br>
    
 Change Directory to `pokt`
@@ -176,19 +175,20 @@ cd docker/blockchains/pokt
 
 If necessary, ensure correct permissions on the `pokt` folder:
 ```sh
-chown -R 1005:1005 mesh/.pocket
-chown -R 1005:1005 node/.pocket
+sudo chown -R 1005:1005 mesh/.pocket
+sudo chown -R 1005:1005 node/.pocket
 ```
 
 Ensure you have the latest `addrbook.json` for the servicer node:
 ```sh
-wget -O node/.pocket/config/addrbook.json https://pocket-snapshot-us.liquify.com/files/addrbook.json
+sudo wget -O node/.pocket/config/addrbook.json https://pocket-snapshot-us.liquify.com/files/addrbook.json
 ```
 
-Using your preferred text editor, modify the `node/.pocket/config/config.json` file with your node's IP address and Tendermint port (26656):
+Using your preferred text editor, modify the `node/.pocket/config/config.json` file with your node's IP address and Tendermint port (26656).
 ```
 "ExternalAddress"="tcp://YOUR_NODE_IP_ADDRESS:26656"
 ```
+**Note:** Set `"generate_token_on_start"` to `true`(Required) 
 
 Using your preferred text editor, update `node/.pocket/lean_nodes_keys.json` with your pocket node wallet private key(s). 
 ```
@@ -211,12 +211,11 @@ Again, using your preferred text editor, update `mesh/.pocket/key/key.json` with
   }
 ]
 ```
-**Note:** It's advisable to begin by launching the servicer node with the command `docker-compose -f servicer-mesh.yml up -d pocket-node`, and subsequently, copy the `auth.json` file to the servicer node directory. 
+**Note:** It's advisable to begin by launching the servicer node with the command `docker-compose -f servicer-mesh.yml up -d pocket-node`, and subsequently, copy the `auth.json` file to the servicer node directory. After the copy, set `"generate_token_on_start"` to `false`
 
 ```sh
-mkdir mesh/.pocket/auth
-cp node/.pocket/config/auth.json mesh/.pocket/auth/servicer.json
-cp node/.pocket/config/auth.json mesh/.pocket/auth/mesh.json
+sudo cp node/.pocket/config/auth.json mesh/.pocket/auth/servicer.json
+sudo cp node/.pocket/config/auth.json mesh/.pocket/auth/mesh.json
 ```
 </details>
 
@@ -233,7 +232,7 @@ cd docker/blockchains/pokt
 
 If necessary, ensure correct permissions on the `pokt` folder:
 ```sh
-chown -R 1005:1005 mesh/.pocket
+sudo chown -R 1005:1005 mesh/.pocket
 ```
 
 Again, using your preferred text editor, update `mesh/.pocket/key/key.json` with your pocket node wallet private key(s). Also replace the pocket `URL` to reflect the `IP:PORT` or `FQDN` of your servicer node running in your primary site.
@@ -269,17 +268,17 @@ cd docker/blockchains/pokt
 
 If necessary, ensure correct permissions on the `pokt` folder:
 ```sh
-chown -R 1005:1005 node/.pocket
+sudo chown -R 1005:1005 node/.pocket
 ```
 
 Make a copy of the `example.env` to `.env`
 ```sh
-cp example.env .env
+sudo cp example.env .env
 ```
 
 Ensure you have the latest `addrbook.json` for the servicer node:
 ```sh
-wget -O node/.pocket/config/addrbook.json https://pocket-snapshot-us.liquify.com/files/addrbook.json
+sudo wget -O node/.pocket/config/addrbook.json https://pocket-snapshot-us.liquify.com/files/addrbook.json
 ```
 
 Update the contents of the `.env` file
@@ -302,7 +301,7 @@ Using your preferred text editor, modify the `node/.pocket/config/config.json` f
 Using a snapshot to deploy your node can significantly reduce the time required for initial synchronization. Instead of downloading and verifying all historical blocks, the snapshot provides a recent state of the blockchain, allowing your node to quickly catch up to the current network state. Copy and paste the following commands to download and extract the latest [snapshot](https://pocket-snapshot-us.liquify.com/#/).
 
 ```
-wget -O downloaded_snap.tar https://pocket-snapshot-us.liquify.com/files/pruned/$(curl -s https://pocket-snapshot-us.liquify.com/files/pruned/latest.txt) && tar -xvf downloaded_snap.tar -C node/.pocket/ && rm downloaded_snap.tar
+sudo wget -O downloaded_snap.tar https://pocket-snapshot-us.liquify.com/files/pruned/$(curl -s https://pocket-snapshot-us.liquify.com/files/pruned/latest.txt) && tar -xvf downloaded_snap.tar -C node/.pocket/ && rm downloaded_snap.tar
 ```
 
 
