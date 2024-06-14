@@ -1,13 +1,6 @@
 version: "3.8"
 
 services:
-  folder-access-control:
-    image: poktscan/pocket-core:BETA-MESH-RC-0.5.0-RC-0.11.1
-    user: root
-    restart: "no"
-    entrypoint: [ "/home/app/fix_permissions.sh", "/home/app/.pocket"]
-    volumes:
-      - "./node/.pocket/:/home/app/.pocket/"
   pocket-node:
     image: poktscan/pocket-core:BETA-MESH-RC-0.5.0-RC-0.11.1
     container_name: pocket-node
@@ -22,8 +15,6 @@ services:
       - POCKET_CORE_KEY=${POCKET_CORE_KEY}
       - POCKET_CORE_ADDRESS=${POCKET_CORE_ADDRESS}
     command: ["pocket", "start", "--mainnet",  "--datadir=/home/app/.pocket"]
-    depends_on:
-      - folder-access-control
     volumes:
       - "./node/.pocket/:/home/app/.pocket/"
     ports:

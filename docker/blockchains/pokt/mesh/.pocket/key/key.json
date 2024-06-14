@@ -1,11 +1,9 @@
 [
-    {
-        "name": "",
-        "url": "http://localhost:8081",
-        "keys": [
-           "key1",
-           "key2",
-           "keyN"
-       ]
-     }
-   ]
+  {
+    "name": "",
+    "url": "http://pocket-node:8081",
+    "keys": [
+      ""
+    ]
+  }
+]
