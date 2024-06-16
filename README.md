@@ -333,12 +333,12 @@ cd docker/blockchains/eth
 
 To ensure proper operation, ensure the necessary ports are open in your firewall. Use the following commands to open these ports:
 ```sh
-sudo ufw all 9000/tcp
-sudo ufw all 9000/udp
-sudo ufw all 30303/tcp
-sudo ufw all 30303/tcp
-sudo ufw all 42069/tcp
-sudo ufw all 42069/tcp
+sudo ufw allow 9000/tcp
+sudo ufw allow 9000/udp
+sudo ufw allow 30303/tcp
+sudo ufw allow 30303/tcp
+sudo ufw allow 42069/tcp
+sudo ufw allow 42069/tcp
 ```
 
 Set the correct permissions on both `erigon` and `lighthouse` folders
