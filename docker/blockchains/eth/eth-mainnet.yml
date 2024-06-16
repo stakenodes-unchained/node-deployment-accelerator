@@ -10,39 +10,44 @@ x-logging: &logging
 services:
   eth-execution:
     <<: *logging
-    image: thorax/erigon:latest
+    image: thorax/erigon:v2.60.1
     container_name: eth-execution
     restart: unless-stopped
     user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
 #    deploy:
 #      resources:
 #        limits:
-#          cpus: '16'
-#          memory: 56G
+#          cpus: '8'
+#          memory: 16G
 #    mem_swappiness: 0
     command:
-      - --datadir=/root/.local/share/erigon
+      - --datadir=/home/erigon/.local/share/erigon
       - --port=30303
       - --prune=htc
       - --authrpc.port=8551
-      - --authrpc.jwtsecret=/root/.local/share/erigon/jwt.hex
+      - --authrpc.jwtsecret=/home/erigon/.local/share/erigon/jwt.hex
       - --authrpc.addr=0.0.0.0
       - --authrpc.vhosts=*
-      - --nat=extip:<host IP> # Replace with host IP address
+      - --nat=extip:<HOST IP> # Replace with host IP address
       - --private.api.addr=0.0.0.0:9090
       - --maxpeers=200
       - --torrent.port=42069
       - --torrent.download.rate=1000mb
       - --torrent.download.slots=6
       - --downloader.verify
+      - --db.size.limit=2TB
       - --batchSize=512M
       - --etl.bufferSize=512M
+      - --metrics 
+      - --metrics.addr=0.0.0.0
+      - --metrics.port=6060
       - --log.console.verbosity=info
     volumes:
-      - ./erigon:/root/.local/share/erigon
+      - ./erigon:/home/erigon/.local/share/erigon
     expose:
       - 8551
       - 9090
+      - 6060
     ports:
       # P2P TCP (Default: 30303)
       - 30303:30303/tcp
@@ -55,7 +60,7 @@ services:
 
   eth-rpcdaemon:
     <<: *logging
-    image: thorax/erigon:latest
+    image: thorax/erigon:v2.60.1
     container_name: eth-rpcdaemon
     restart: unless-stopped
     user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
@@ -63,12 +68,12 @@ services:
 #    deploy:
 #      resources:
 #        limits:
-#          cpus: '16'
-#          memory: 16G
+#          cpus: '4'
+#          memory: 8G
 #    mem_swappiness: 0
     entrypoint: rpcdaemon
     command:
-      - --datadir=/root/.local/share/erigon
+      - --datadir=/home/erigon/.local/share/erigon
       - --http.port=8545
       - --ws
       - --http.api=eth,debug,net,trace,web3
@@ -84,7 +89,9 @@ services:
       - eth-execution
     ports:
       # RPC TCP (Default: 8545)
-      - 8545:8545
+      # Expose RPC port to bind on localhost,
+      # but not for general Internet
+      - 127.0.0.1:8545:8545
 
   eth-consensus:
     <<: *logging
@@ -111,12 +118,17 @@ services:
       - --execution-jwt=/jwt.hex
       - --execution-endpoint=http://eth-execution:8551
       - --checkpoint-sync-url=https://beaconstate.info
+      - --metrics
+      - --metrics-address=0.0.0.0
+      - --metrics-port=5054
       - --disable-upnp
     depends_on:
       - eth-execution
     volumes:
       - ./lighthouse:/root/.lighthouse
       - ./erigon/jwt.hex:/jwt.hex
+    expose:
+      - 5054
     ports:
       # P2P TCP (Default: 9000)
       - 9000:9000/tcp
