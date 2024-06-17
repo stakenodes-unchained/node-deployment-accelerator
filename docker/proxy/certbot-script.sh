@@ -8,7 +8,7 @@ debug() {
 }
 
 # Print a message to indicate the script is running
-echo "Script is running..."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Script is running..."
 
 # ##########################################################
 #                    Basic Configuration                   #
@@ -43,7 +43,7 @@ debug "cert_path: $cert_path"
 
 # Check if the certificate folder is empty
 if [ -z "$(ls -A $cert_path)" ]; then
-  echo "Certificate folder is empty. Requesting new certificates..."
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Certificate folder is empty. Requesting new certificates..."
 
   # Build the certbot command
   certbot_command="certbot certonly --webroot --webroot-path $webroot_path -d $domain --expand --non-interactive --agree-tos --email $email"
@@ -61,17 +61,17 @@ if [ -z "$(ls -A $cert_path)" ]; then
   done
 
   # Debugging: Print the final command if DEBUG is true
-  debug "Running command: $certbot_command"
+  debug "[$(date '+%Y-%m-%d %H:%M:%S')] Running command: $certbot_command"
 
   # Execute the certbot command
   $certbot_command
 else
-  echo "Certificate folder is not empty. Skipping certificate request."
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Certificate folder is not empty. Skipping certificate request."
 fi
 
 # Loop to renew certificates every 12 hours
 while true; do
-  echo "Attempting to renew certificates..."
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Attempting to renew certificates..."
   certbot renew --quiet
 
   # Sleep for 12 hours
@@ -79,4 +79,4 @@ while true; do
 done
 
 # End of Script
-echo "Script completed."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Script completed."
