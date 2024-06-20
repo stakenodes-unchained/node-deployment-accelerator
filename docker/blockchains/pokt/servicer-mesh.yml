@@ -69,6 +69,6 @@ services:
       - ${POKT_GRAFANA_CONFIG:-./prometheus/grafana.ini}:/etc/grafana/grafana.ini
       - ./prometheus/datasources:/etc/grafana/provisioning/datasources
       - ./prometheus/dashboards:/etc/grafana/provisioning/dashboards
-      - ${XDG_DATA_HOME:-~/.local/share}/erigon-grafana:/var/lib/grafana
+      - ${XDG_DATA_HOME:-~/.local/share}/pokt-grafana:/var/lib/grafana
     restart: unless-stopped
 
