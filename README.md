@@ -5,8 +5,8 @@
 3. [Getting started](#getting-started)
    1. [Running Nodes](#running-nodes)
       1. [Pocket Network](#pocket-network)
-      2. [Ethereum](#ethereum)
-   2. [Nginx Setup](#nginx-setup)
+      2. [Ethereum Mainnet](#ethereum-mainnet)
+   2. [NGINX Setup](#nginx-setup)
    3. [Monitoring](#monitoring)
    4. [Alert](#alert)
 4. [Usage](#usage)
@@ -48,7 +48,7 @@ The solution will include a user-friendly interface that allows for easy monitor
 3. **Add Docker’s official GPG key**:
     ```sh
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    ```
+    ```  
 
 4. **Set up the stable repository**:
     ```sh
@@ -304,8 +304,129 @@ Using a snapshot to deploy your node can significantly reduce the time required 
 sudo wget -O downloaded_snap.tar https://pocket-snapshot-us.liquify.com/files/pruned/$(curl -s https://pocket-snapshot-us.liquify.com/files/pruned/latest.txt) && tar -xvf downloaded_snap.tar -C node/.pocket/ && rm downloaded_snap.tar
 ```
 
+### Ethereum Mainnet
 
-## Nginx Setup
+#### 1. Requirement
+
+Ethereum Mainnet running on the Erigon client requires specific ports to be open to facilitate network communication and synchronization. In addition, Ethereum nodes utilizing the Ethereum 2.0 client Lighthouse require port 9000 to be open for inter-node communication and synchronization on the Beacon chain.
+
+| Port          | Type        | Firewall allow | Client     | Purpose                                             |
+|---------------|-------------|----------------|------------|---------------------------------------------------- |
+| 8545          | TCP         | N              | Erigon     | JSON-RPC API for HTTP connections                   |
+| 8551          | TCP         | N              | Erigon     | Engine API                                          |
+| 5052          | TCP         | N              | Lighthouse | Ethereum 2.0 Beacon Chain inter-node communication  |
+| 9000          | TCP/UDP     | Y              | Lighthouse | Ethereum 2.0 Peer-to-Peer (P2P) communication       |
+| 9090          | TCP         | N              | Erigon     | gRPC Server                                         |
+| 30303         | TCP/UDP     | Y              | Erigon     | Ethereum peer-to-peer (P2P) communication           |
+| 42069         | TCP/UDP     | Y              | Erigon     | Bittorrent                                          |
+
+#### 2. Hardware Sizing and Limits
+   
+For optimal performance, we advise against imposing memory or CPU limits on the containers. If you choose to set limits, uncomment the `deploy` sections in the YAML file. These sections contain default minimum requirements for each node. For additional information, refer to the [System Requirements](https://github.com/ledgerwatch/erigon/blob/main/README.md#system-requirements) section in the Erigon documentation on GitHub, and for Lighthouse, see the [recommended system requirements](https://lighthouse-book.sigmaprime.io/installation.html#recommended-system-requirements).
+
+#### 3. Deployment 
+
+Change Directory to `eth`
+```sh
+cd docker/blockchains/eth
+```
+
+To ensure proper operation, ensure the necessary ports are open in your firewall. Use the following commands to open these ports:
+```sh
+sudo ufw allow 9000/tcp
+sudo ufw allow 9000/udp
+sudo ufw allow 30303/tcp
+sudo ufw allow 30303/tcp
+sudo ufw allow 42069/tcp
+sudo ufw allow 42069/tcp
+```
+
+Set the correct permissions on both `erigon` and `lighthouse` folders
+```sh
+sudo mkdir lighthouse
+sudo chown -R 1000:1000 ./erigon
+sudo chown -R 1000:1000 ./lighthouse
+```
+
+Create the jwt.hex for secure and authenticated communication between different Ethereum clients and components (**Not Required**)
+```sh
+sudo bash -c 'openssl rand -hex 32 > ./erigon/jwt.hex'
+```
+
+The directory contains two YAML files. Start your desired node using `docker-compose up -f <file name> up -d`. See the [Usage](#usage) section of the README.md for additional docker node management tips. 
+
+
+
+
+## NGINX Setup
+
+**NGINX** is essential for running a Pocket Network node as it efficiently manages incoming traffic and distributes it across multiple backend servers. This is crucial for providing reliable relays to the network, as NGINX ensures load balancing, optimizes resource usage, and maintains high availability. Additionally, its robust security features protect the node from potential threats, ensuring seamless and secure relay provision to the network.
+
+The NGINX folder is already deployed with multiple pre-configured `.sample` files that can be used as templates or as is by simply updating the required fields. Ports 80 and 443
+
+First, create DNS records in your registrar for your `domain` or `subdomain` with the IP address of the host you are deploying the configuration on. We recommend using a `subdomain` because it allows the domain to serve multiple purposes. For example, with subdomains like `subdomain.example.com` and `*.subdomain.example.com`, you can isolate different services and environments under the same main domain. This approach improves organization, enhances security by isolating services, and provides greater flexibility for managing and scaling your infrastructure. Additionally, create a third A record for your servicer node, e.g., `servicer.subdomain.example.com`. 
+
+| Hostname             | Type    | Value             |
+| -------------------  | ------- | ----------------- |
+| subdomain            | A       | 203.25.113.12     |
+| *.subdomain          | A       | 203.25.113.12     |
+| servicer.subdomain   | A       | 203.25.113.12     |
+
+**Note:** This document will not discuss multi-region DNS deployment strategies. 
+
+The deployment will automatically generate a certificate for the subdomain, including a **Subject Alternative Name (SAN)**. By default, the `number_of_sans` value is set to `50`. It is important to ensure that each POKT node is deployed with a trusted SSL certificate. LetsEncrypt has a limitation of `100` SANs per certificate. For larger node runners with extensive deployments, consider using alternative authentication methods with Cerbot, such as authentication keys, APIs, or DNS challenges, to generate a wildcard certificate (\*).
+
+Change Directory to `proxy`
+```sh
+cd docker/proxy
+```
+To ensure proper operation, ensure that ports `80` and `443` for Nginx are open in your firewall. Use the following commands to open these ports:
+```sh
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+```
+
+Using your preferred editor, edit `webroot/conf.d/http-redirect-and-acme.conf` and replace `<YOUR_DOMAIN_HERE>` with your subdomain. Use `sudo` if necessary. 
+```
+server {
+    listen 80;
+    server_name subdomain.example.com;
+```
+Again, using your preferred editor, edit `certbot-script.sh` and set the value under the `Basic Configuration` section. Leave all other populated variables as default.
+
+- `prefix:` Matches the name of your POKT nodes. For example, `node`, `pokt`.
+
+- `domain:` Matches your subdomain. For instance, `subdomain.example.com`.
+
+- `number_of_sans:` Update this only if you have more than 50 POKT nodes.
+
+- `email:` Matches your email address. For example, `yourname@example.com`.
+
+
+Start the docker containers 
+```sh
+docker-compose up -d
+```
+
+Validate Certbot has successfully generate the certificate.
+```sh
+docker-compose logs -f 
+```
+
+In the `/webroot/conf.d` folder, there are two `.sample` files. To proceed, remove the `.sample` extension from the file that corresponds to the deployment strategy in your region using the `cp` command. For example, `cp nginx/conf.d/servicer.conf.sample nginx/conf.d/servicer-mesh.conf`. Then, using your preferred editor, update the `server_name` location in the selected file with the accurate DNS record. Additional instructions are provided within the config file for guidance.
+
+| File                       | Deployment Type          |
+| -------------------------  | ------------------------ | 
+| servicer-mesh.conf.sample  | Both (Servicer, Mesh)    | 
+| mesh                       | Mesh                     | 
+
+
+See [Pocket Network](#pocket-network) for more information on POKT nodes deployment methods.
+
+Finally, execute the following command to `reload NGINX`
+```sh
+docker exec -it webserver nginx -s reload
+```
 
 ## Monitoring
 
