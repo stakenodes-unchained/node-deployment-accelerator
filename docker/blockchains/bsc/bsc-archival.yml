@@ -32,7 +32,7 @@ services:
       - --torrent.download.slots=6
       - --p2p.protocol=68
       - --downloader.verify
-      - --db.size.limit=12TB
+      - --db.size.limit=10TB
       - --db.pagesize=16k
       - --healthcheck
       - --txpool.disable
