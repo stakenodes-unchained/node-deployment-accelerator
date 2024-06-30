@@ -121,6 +121,12 @@ Change the directory
 ```sh
  cd node-deployment-accelerator
 ```
+
+Create a docker network
+```sh
+ docker network create nda-management-network
+```
+
 ## Running Nodes
 
 To deploy a node, navigate to the node's respective directory and start the type of node you wish to run. They are generally classified as the following:
