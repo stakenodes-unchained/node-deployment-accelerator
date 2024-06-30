@@ -22,14 +22,19 @@ services:
     volumes:
       - "./node/.pocket/:/home/app/.pocket/"
     ports:
-      # Pocket JSON-RPC
-      - "8081:8081"
-      # Prometheus Metrics  
-      - "8083:8083"
       # Tendermint P2P   
       - "26656:26656"
       # Tendermint JSON-RPC
       - "26657:26657"
+      # Expose ports to bind on localhost,
+      # but not for general Internet
+      # Pocket JSON-RPC
+      - "127.0.0.1:8081:8081"
+      # Prometheus Metrics  
+      - "127.0.0.1:8083:8083"
+      - "127.0.0.1:26660:26660"
+    networks:
+      - nda-management-network
   pocket-mesh:
     <<: *logging
     image: poktscan/pocket-core:MESH-RC-0.4.2-RC-0.11.1
@@ -46,5 +51,15 @@ services:
     volumes:
       - "./mesh/.pocket:/home/app/.pocket"
     ports:
+      # Expose ports to bind on localhost,
+      # but not for general Internet
       # Pocket JSON-RPC (Default: 8081)
-      - "8082:8082"
+      - "127.0.0.1:8082:8082"
+      # Prometheus Metrics  
+      - "127.0.0.1:8084:8084"
+    networks:
+      - nda-management-network
+
+networks:
+  nda-management-network:
+    external: true

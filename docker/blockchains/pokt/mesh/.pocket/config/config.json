@@ -46,7 +46,7 @@
     "session_storage_validate_retry_max_times": 10,
     "node_check_interval": 10,
     "session_cache_clean_up_interval": 1800,
-    "pocket_prometheus_port": "8083",
+    "pocket_prometheus_port": "8084",
     "prometheus_max_open_files": 3,
     "metrics_moniker": "geo-mesh-node",
     "metrics_worker_strategy": "balanced",

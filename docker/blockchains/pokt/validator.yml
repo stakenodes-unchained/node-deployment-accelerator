@@ -18,16 +18,25 @@ services:
     volumes:
       - "./node/.pocket/:/home/app/.pocket/"
     ports:
-      # Pocket JSON-RPC
-      - "8081:8081"
-      # Prometheus Metrics  
-      - "8083:8083"
       # Tendermint P2P   
       - "26656:26656"
       # Tendermint JSON-RPC
       - "26657:26657"
+      # Expose ports to bind on localhost,
+      # but not for general Internet
+      # Pocket JSON-RPC
+      - "127.0.0.1:8081:8081"
+      # Prometheus Metrics
+      - "127.0.0.1:8083:8083"
+      - "127.0.0.1:26660:26660"
     logging:
       options:
         max-size: "10m"
         max-file: "3"
         compress: "true"
+    networks:
+      - nda-management-network
+
+networks:
+  nda-management-network:
+    external: true

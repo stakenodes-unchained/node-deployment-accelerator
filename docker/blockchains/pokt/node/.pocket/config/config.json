@@ -120,7 +120,7 @@
             "IndexAllKeys": false
         },
         "Instrumentation": {
-            "Prometheus": false,
+            "Prometheus": true,
             "PrometheusListenAddr": ":26660",
             "MaxOpenConnections": 3,
             "Namespace": "tendermint"

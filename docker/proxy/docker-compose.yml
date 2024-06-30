@@ -17,8 +17,8 @@ services:
       test: ["CMD-SHELL", "curl -f http://127.0.0.1/health"]
       interval: 5s
       retries: 3
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    networks:
+      - nda-management-network
     logging:
       driver: "json-file"
       options:
@@ -37,3 +37,9 @@ services:
       - ./letsencrypt:/etc/letsencrypt
       - ./webroot/www/html:/var/www/html
       - ./certbot-script.sh:/usr/local/bin/certbot-script.sh
+    networks:
+      - nda-management-network
+
+networks:
+  nda-management-network:
+    external: true

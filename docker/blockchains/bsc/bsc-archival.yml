@@ -10,7 +10,7 @@ x-logging: &logging
 services:
   bsc-execution:
     <<: *logging
-    image: ghcr.io/node-real/bsc-erigon:1.2.8
+    image: ghcr.io/node-real/bsc-erigon:1.2.10
     container_name: bsc-execution
     restart: unless-stopped
     user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
@@ -18,49 +18,58 @@ services:
 #      resources:
 #        limits:
 #          cpus: '16'
-#          memory: 56G
+#          memory: 32G
 #    mem_swappiness: 0
     command:
       - --chain=bsc
-      - --datadir=/root/.local/share/erigon
-      - --port=30303
+      - --datadir=/home/erigon/.local/share/erigon
+      - --port=30305
+      - --nat=extip:<YOUR_EXTERNAL_IP> # Replace <YOUR_EXTERNAL_IP> with your actual external IP address
       - --private.api.addr=0.0.0.0:9090
-      - --torrent.port=42069
+      - --maxpeers=250
+      - --torrent.port=42070
       - --torrent.download.rate=1000mb
       - --torrent.download.slots=6
-      - --p2p.protocol=66,67
-      - --sentry.drop-useless-peers=true
-      - --nat=extip:<host IP> # Replace with host IP address
-      - --maxpeers=250
+      - --p2p.protocol=68
       - --downloader.verify
-      - --etl.bufferSize=512M
-      - --db.pagesize=16k
       - --db.size.limit=12TB
+      - --db.pagesize=16k
       - --healthcheck
-      - --log.console.verbosity=info
+      - --txpool.disable
       - --bodies.cache=214748364800
       - --batchSize=4096M
-      - --sentry.drop-useless-peers
+      - --etl.bufferSize=512M
+      - --metrics
+      - --metrics.addr=0.0.0.0
+      - --metrics.port=6061
+      - --log.console.verbosity=info
     volumes:
-      - ./erigon:/root/.local/share/erigon
+      - ./erigon:/home/erigon/.local/share/erigon
     expose:
+      - 8551
       - 9090
     ports:
       # P2P TCP (Default: 30303)
-      - 30303:30303/tcp
+      - 30305:30305/tcp
       # P2P UDP (Default: 30303)
-      - 30303:30303/udp
+      - 30305:30305/udp
       # BitTorrent TCP (Default: 42069)
-      - 42069:42069/tcp
+      - 42070:42070/tcp
       # BitTorrent UDP (Default: 42069)
-      - 42069:42069/udp
+      - 42070:42070/udp
+      # Expose port to bind on localhost only,
+      # preventing access from the general Internet
+      # Prometheus TCP (Default: 6060)
+      - 127.0.0.1:6061:6061
+    networks:
+      - nda-management-network
 
   bsc-rpcdaemon:
     <<: *logging
-    image: ghcr.io/node-real/bsc-erigon:1.1.9
+    image: ghcr.io/node-real/bsc-erigon:1.2.10
     container_name: bsc-rpcdaemon
     restart: unless-stopped
-    user: root
+    user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
     pid: service:bsc-execution
 #    deploy:
 #      resources:
@@ -70,10 +79,10 @@ services:
 #    mem_swappiness: 0
     entrypoint: rpcdaemon
     command:
-      - --datadir=/root/.local/share/erigon
+      - --datadir=/home/erigon/.local/share/erigon
       - --http.port=8550
       - --ws
-      - --http.api=eth,debug,net,trace,web3
+      - --http.api=eth,debug,net,trace,web3,txpool,admin
       - --http.addr=0.0.0.0
       - --http.vhosts=*
       - --http.corsdomain=*
@@ -85,5 +94,13 @@ services:
     volumes_from:
       - bsc-execution
     ports:
-      # RPC TCP (Default: 8545)
-      - 8545:8545
+      # Expose port to bind on localhost only,
+      # preventing access from the general Internet
+      # JSON RPC TCP (Default: 8545)
+      - 127.0.0.1:8550:8550
+    networks:
+      - nda-management-network
+
+networks:
+  nda-management-network:
+    external: true

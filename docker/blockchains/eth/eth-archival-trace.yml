@@ -27,7 +27,7 @@ services:
       - --authrpc.jwtsecret=/home/erigon/.local/share/erigon/jwt.hex
       - --authrpc.addr=0.0.0.0
       - --authrpc.vhosts=*
-      - --nat=extip:<HOST IP> # Replace with host IP address
+      - --nat=extip:<YOUR_EXTERNAL_IP> # Replace <YOUR_EXTERNAL_IP> with your actual external IP address
       - --private.api.addr=0.0.0.0:9090
       - --maxpeers=200
       - --torrent.port=42069
@@ -37,7 +37,7 @@ services:
       - --db.size.limit=4TB
       - --batchSize=512M
       - --etl.bufferSize=512M
-      - --metrics 
+      - --metrics
       - --metrics.addr=0.0.0.0
       - --metrics.port=6060
       - --log.console.verbosity=info
@@ -46,7 +46,6 @@ services:
     expose:
       - 8551
       - 9090
-      - 6060
     ports:
       # P2P TCP (Default: 30303)
       - 30303:30303/tcp
@@ -56,6 +55,12 @@ services:
       - 42069:42069/tcp
       # BitTorrent UDP (Default: 42069)
       - 42069:42069/udp
+      # Expose port to bind on localhost only,
+      # preventing access from the general Internet
+      # Prometheus TCP (Default: 6060)
+      - 127.0.0.1:6060:6060
+    networks:
+      - nda-management-network
 
   eth-rpcdaemon:
     <<: *logging
@@ -87,10 +92,12 @@ services:
     volumes_from:
       - eth-execution
     ports:
-      # RPC TCP (Default: 8545)
-      # Expose RPC port to bind on localhost,
-      # but not for general Internet
+      # Expose port to bind on localhost only,
+      # preventing access from the general Internet
+      # JSON RPC TCP (Default: 8545)
       - 127.0.0.1:8545:8545
+    networks:
+      - nda-management-network
 
   eth-consensus:
     <<: *logging
@@ -127,13 +134,20 @@ services:
     volumes:
       - ./lighthouse:/root/.lighthouse
       - ./erigon/jwt.hex:/jwt.hex
-    expose:
-      - 5054
     ports:
       # P2P TCP (Default: 9000)
       - 9000:9000/tcp
       # P2P UDP (Default: 9000)
       - 9000:9000/udp
-      # Expose API port to bind on localhost,
-      # but not for general Internet
+      # Expose ports to bind on localhost only,
+      # preventing access from the general Internet
+      # JSON RPC TCP (Default: 5052)
       - 127.0.0.1:5052:5052
+      # Prometheus TCP (Default: 5054)
+      - 127.0.0.1:5054:5054
+    networks:
+      - nda-management-network
+
+networks:
+  nda-management-network:
+    external: true

@@ -8,11 +8,11 @@
 # YOUR_DOMAIN_HERE = Actual domain name or subdomain. e.g *.subdomain.example.com
 
 upstream servicer_node {
-    server host.docker.internal:8081;
+    server pocket-node:8081;
 }
 
 upstream mesh_node {
-    server host.docker.internal:8082;
+    server pocket-mesh:8082;
 }
 
 server {

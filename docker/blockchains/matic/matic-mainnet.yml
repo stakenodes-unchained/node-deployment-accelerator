@@ -1,4 +1,4 @@
-version: '3.6'
+version: '3.8'
 
 x-logging: &logging
   logging:
@@ -15,6 +15,8 @@ services:
     restart: unless-stopped
     expose:
       - 5672
+    networks:
+      - nda-management-network
 
   heimdall:
     <<: *logging
@@ -27,79 +29,103 @@ services:
       - start
       - --chain=mainnet
       - --home=/heimdall-home
-      - --p2p.laddr=tcp://0.0.0.0:26656
-      - --rpc.laddr=tcp://0.0.0.0:26657
-      - --eth_rpc_url=<your ethereum endpoint>
-      - --bor_rpc_url=http://bor-rpcdaemon:8555
+      - --p2p.laddr=tcp://0.0.0.0:26666
+      - --rpc.laddr=tcp://0.0.0.0:26667
+      - --eth_rpc_url=https://eth-mainnet.rpc.grove.city/v1/YOUR_APPLICATION_ID # Replace YOUR_APPLICATION_ID with your actual Grove APP ID
+      - --bor_rpc_url=http://bor-rpcdaemon:8560
       - --amqp_url=amqp://guest:guest@rabbitmq:5672/
       - --rest-server
     volumes:
       - ./heimdall:/heimdall-home
     ports:
       # P2P TCP (Default: 26656)
-      - 26656:26656 # P2P
+      - 26666:26666
+      # Expose ports to bind on localhost only,
+      # preventing access from the general Internet
       # RPC TCP (Default: 26657)
-      - 26657:26657
+      - 127.0.0.1:26667:26667
       # Heimdall REST API
-      - 1317:1317
+      - 127.0.0.1:1317:1317
+    networks:
+      - nda-management-network
 
   bor:
     <<: *logging
-    image: thorax/erigon:v2.59.3
+    image: thorax/erigon:v2.60.1
     container_name: matic-bor
-    user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
     restart: unless-stopped
-    depends_on:
-      - heimdall
+    user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '16'
+#          memory: 32G
+#    mem_swappiness: 0
     command:
       - --chain=bor-mainnet
-      - --bor.milestone
-      - --downloader.verify
-      - --torrent.verbosity=3
-      - --prune=htc
-      - --db.pagesize=16k
-      - --rpc.returndata.limit=300000
-      - --private.api.addr=0.0.0.0:9090
-      - --http.addr=0.0.0.0
       - --datadir=/home/erigon/.local/share/erigon
+      - --prune=hrtc
+      - --port=30307
       - --bor.heimdall=http://heimdall:1317
-      - --nat=extip:<host IP> # Replace with host IP address
-      - --torrent.port=42069
+      - --bor.milestone
+      - --rpc.returndata.limit=300000
+      - --nat=extip:<YOUR_EXTERNAL_IP> # Replace <YOUR_EXTERNAL_IP> with your actual external IP address
+      - --private.api.addr=0.0.0.0:9090
+      - --maxpeers=300
+      - --torrent.port=42072
       - --torrent.download.rate=1000mb
       - --torrent.download.slots=10
-      - --port=30303
-      - --maxpeers=300
-      - --p2p.allowed-ports=30304,30305,30306
+      - --torrent.verbosity=3
+      - --downloader.verify
+      - --db.pagesize=16k
+      - --batchSize=512M
+      - --etl.bufferSize=512M
+      - --p2p.allowed-ports=30308,30309,30310
       - --p2p.protocol=66,67
       - --bootnodes=enode://b8f1cc9c5d4403703fbf377116469667d2b1823c0daf16b7250aa576bacf399e42c3930ccfcb02c5df6879565a2b8931335565f0e8d3f8e72385ecf4a4bf160a@3.36.224.80:30303,enode://8729e0c825f3d9cad382555f3e46dcff21af323e89025a0e6312df541f4a9e73abfa562d64906f5e59c51fe6f0501b3e61b07979606c56329c020ed739910759@54.194.245.5:30303
+      - --metrics
+      - --metrics.addr=0.0.0.0
+      - --metrics.port=6063
+      - --log.console.verbosity=info
     volumes:
       - ./bor:/home/erigon/.local/share/erigon
     expose:
-      - 8551
       - 9090
-    Ports:
+    ports:
       # P2P TCP (Default: 30303)
-      - 30303:30303/tcp
+      - 30307:30307/tcp
       # P2P UDP (Default: 30303)
-      - 30303:30303/udp
+      - 30307:30307/udp
       # BitTorrent TCP (Default: 42069)
-      - 42069:42069/tcp
+      - 42072:42072/tcp
       # BitTorrent UDP (Default: 42069)
-      - 42069:42069/udp
+      - 42072:42072/udp
       # Additional P2P Allowed Ports
-      - 30304-30306:30304-30306
+      - 30308-30310:30308-30310
+      # Expose port to bind on localhost only,
+      # preventing access from the general Internet
+      # Prometheus TCP (Default: 6060)
+      - 127.0.0.1:6063:6063
+    networks:
+      - nda-management-network
 
   bor-rpcdaemon:
     <<: *logging
-    image: thorax/erigon:v2.59.3
+    image: thorax/erigon:v2.60.1
     container_name: matic-rpcdaemon
     restart: unless-stopped
-    user:  ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
+    user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
     pid: service:bor
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '4'
+#          memory: 8G
+#    mem_swappiness: 0
     entrypoint: rpcdaemon
     command:
       - --datadir=/home/erigon/.local/share/erigon
-      - --http.port=8555
+      - --http.port=8560
       - --ws
       - --http.api=eth,erigon,web3,net,debug,trace,txpool
       - --http.addr=0.0.0.0
@@ -113,5 +139,13 @@ services:
     volumes_from:
       - bor
     ports:
-      # RPC TCP (Default: 8545)
-      - 8545:8545
+      # Expose ports to bind on localhost only,
+      # preventing access from the general Internet
+      # JSON RPC TCP (Default: 8545)
+      - 127.0.0.1:8560:8560
+    networks:
+      - nda-management-network
+
+networks:
+  nda-management-network:
+    external: true
