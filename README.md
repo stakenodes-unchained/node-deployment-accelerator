@@ -6,6 +6,7 @@
    1. [Running Nodes](#running-nodes)
       1. [Pocket Network](#pocket-network)
       2. [Ethereum Mainnet](#ethereum-mainnet)
+      3. [Binance Smart Chain Mainnet](#binance-smart-chain-mainnet)
    2. [NGINX Setup](#nginx-setup)
    3. [Monitoring](#monitoring)
    4. [Alert](#alert)
@@ -337,7 +338,7 @@ Change Directory to `eth`
 cd docker/blockchains/eth
 ```
 
-To ensure proper operation, ensure the necessary ports are open in your firewall. Use the following commands to open these ports:
+To ensure proper operation, make sure the necessary ports are open in your firewall. Use the following commands to open these ports:
 ```sh
 sudo ufw allow 9000/tcp
 sudo ufw allow 9000/udp
@@ -361,7 +362,55 @@ sudo bash -c 'openssl rand -hex 32 > ./erigon/jwt.hex'
 
 The directory contains two YAML files. Start your desired node using `docker-compose up -f <file name> up -d`. See the [Usage](#usage) section of the README.md for additional docker node management tips. 
 
+### Binance Smart Chain Mainnet
 
+#### 1. Requirement
+
+Binance Smart Chain Mainnet running on the Erigon client requires specific ports to be open to facilitate network communication and synchronization. 
+
+
+| Port          | Type        | Firewall allow | Client     | Purpose                                             |
+|---------------|-------------|----------------|------------|---------------------------------------------------- |
+| 6061          | TCP         | N              | Erigon     | Prometheus Metrics                                  |
+| 8550          | TCP         | N              | Erigon     | JSON-RPC API for HTTP connections                   |
+| 8551          | TCP         | N              | Erigon     | Engine API                                          |
+| 9090          | TCP         | N              | Erigon     | gRPC Server                                         |
+| 30305         | TCP/UDP     | Y              | Erigon     | Binance Smart Chain peer-to-peer (P2P) communication|
+| 42070         | TCP/UDP     | Y              | Erigon     | Bittorrent                                          |
+
+#### 2. Hardware Sizing and Limits
+   
+For optimal performance, we advise against imposing memory or CPU limits on the containers. If you choose to set limits, uncomment the `deploy` sections in the YAML file. These sections contain the minimum requirements for each node. For additional information, refer to the [System Requirements](https://github.com/ledgerwatch/erigon/blob/main/README.md#system-requirements) section in the Erigon documentation on GitHub or consider deploying the monitoring tools included in this project to track real-time resource usage for your node(s).
+
+#### 3. Deployment 
+
+Change Directory to `bsc`
+```sh
+cd docker/blockchains/bsc
+```
+
+To ensure proper operation, make sure the necessary ports are open in your firewall. Use the following commands to open these ports:
+```sh
+sudo ufw allow 30305/tcp
+sudo ufw allow 30305/tcp
+sudo ufw allow 42070/tcp
+sudo ufw allow 42070/tcp
+```
+
+Set the correct permissions on the `erigon` folder
+```sh
+sudo chown -R 1000:1000 ./erigon
+```
+
+**Note:** Using your prefered editor, modify your desired YAML file with the host external IP address.
+```
+--nat=extip:<YOUR_EXTERNAL_IP> # Replace <YOUR_EXTERNAL_IP> with your actual external IP address
+```
+The directory contains two `YAML` files. Start your desired node using `docker-compose up -f <file name> up -d`. See the [Usage](#usage) section of the README.md for additional docker node management tips. 
+
+#### 4. Snaphshot download (Recommended)
+
+Using a snapshot to deploy your node can significantly reduce the time required for initial synchronization. Instead of downloading and verifying all historical blocks, the snapshot provides a recent state of the blockchain, allowing your node to quickly catch up to the current network state. Follow the steps in this Github [repository](https://github.com/bnb-chain/bsc-snapshots/blob/main/README.md#3erigon-bsc-snapshotarchive-node) to download and extra the most recent snapshot available for an archival node.
 
 
 ## NGINX Setup
@@ -386,7 +435,7 @@ Change Directory to `proxy`
 ```sh
 cd docker/proxy
 ```
-To ensure proper operation, ensure that ports `80` and `443` for Nginx are open in your firewall. Use the following commands to open these ports:
+To ensure proper operation, make sure that ports `80` and `443` for Nginx are open in your firewall. Use the following commands to open these ports:
 ```sh
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
