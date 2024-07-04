@@ -10,7 +10,7 @@ x-logging: &logging
 services:
   bsc-execution:
     <<: *logging
-    image: ghcr.io/node-real/bsc-erigon:1.2.10
+    image: ghcr.io/node-real/bsc-erigon:1.2.11
     container_name: bsc-execution
     restart: unless-stopped
     user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
@@ -66,7 +66,7 @@ services:
 
   bsc-rpcdaemon:
     <<: *logging
-    image: ghcr.io/node-real/bsc-erigon:1.2.10
+    image: ghcr.io/node-real/bsc-erigon:1.2.11
     container_name: bsc-rpcdaemon
     restart: unless-stopped
     user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
