@@ -10,6 +10,8 @@ services:
      - ./webroot/log:/var/log/nginx
      - ./webroot/www/html:/var/www/html
      - ./letsencrypt:/etc/letsencrypt
+    expose:
+      - "8080"
     ports:
      - "443:443"
      - "80:80"
