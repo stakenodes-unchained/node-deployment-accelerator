@@ -1,0 +1,15 @@
+{
+    "eth-apis": [
+      "eth",
+      "eth-filter",
+      "net",
+      "web3",
+      "internal-eth",
+      "internal-blockchain",
+      "internal-transaction",
+      "debug-tracer"
+    ],
+    "pruning-enabled": false,
+    "state-sync-enabled": false,
+    "allow-missing-tries": false
+}
