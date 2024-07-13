@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  avalanche:
+    image: avaplatform/avalanchego:latest
+    container_name: avax
+    restart: unless-stopped
+    command:
+      [
+        "/avalanchego/build/avalanchego",
+        "--config-file=/root/.avalanchego/configs/config.json"
+      ]
+    volumes:
+      - "./common/full/configs:/root/.avalanchego/configs:ro"
+      - "./avalanchego:/root/.avalanchego"
+    ports:
+      # Expose port to bind on localhost only,
+      # preventing access from the general Internet
+      # HTTP API JSON Port (Default: 9650)
+      - "127.0.0.1:9650:9650"
+      # Consensus Server Port (Default: 9651)
+      - "9651:9651/tcp"
+      - "9651:9651/udp"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - nda-management-network
+
+networks:
+  nda-management-network:
+    external: true
