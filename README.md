@@ -308,7 +308,7 @@ Using your preferred text editor, modify the `node/.pocket/config/config.json` f
 Using a snapshot to deploy your node can significantly reduce the time required for initial synchronization. Instead of downloading and verifying all historical blocks, the snapshot provides a recent state of the blockchain, allowing your node to quickly catch up to the current network state. Copy and paste the following commands to download and extract the latest [snapshot](https://pocket-snapshot-us.liquify.com/#/).
 
 ```
-sudo wget -O downloaded_snap.tar https://pocket-snapshot-us.liquify.com/files/pruned/$(curl -s https://pocket-snapshot-us.liquify.com/files/pruned/latest.txt) && tar -xvf downloaded_snap.tar -C node/.pocket/ && rm downloaded_snap.tar
+sudo wget -O downloaded_snap.tar https://pocket-snapshot-us.liquify.com/files/pruned/$(curl -s https://pocket-snapshot-us.liquify.com/files/pruned/latest.txt) && sudo tar -xvf downloaded_snap.tar -C node/.pocket/ && sudo rm downloaded_snap.tar && sudo chown -R 1005:1005 node/.pocket
 ```
 
 ### Ethereum Mainnet
