@@ -10,7 +10,7 @@ x-logging: &logging
 services:
   gnosis-execution:
     <<: *logging
-    image: thorax/erigon:v2.60.1
+    image: thorax/erigon:2.60.7
     container_name: gnosis-execution
     restart: unless-stopped
     user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
@@ -64,7 +64,7 @@ services:
 
   gnosis-rpcdaemon:
     <<: *logging
-    image: thorax/erigon:v2.60.1
+    image: thorax/erigon:2.60.7
     container_name: gnosis-rpcdaemon
     restart: unless-stopped
     user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
@@ -112,7 +112,7 @@ services:
     command:
       - lighthouse
       - beacon_node
-      - --network=mainnet
+      - --network=gnosis
       - --datadir=/root/.lighthouse
       - --debug-level=info
       - --port=9000
@@ -121,9 +121,10 @@ services:
       - --http-address=0.0.0.0
       - --http-port=5053
       - --http-allow-origin=*
+      - --discovery-port=9010
       - --execution-jwt=/jwt.hex
       - --execution-endpoint=http://gnosis-execution:8551
-      - --checkpoint-sync-url=https://beaconstate.info
+      - --checkpoint-sync-url=https://checkpoint.gnosischain.com
       - --metrics
       - --metrics-address=0.0.0.0
       - --metrics-port=5055
