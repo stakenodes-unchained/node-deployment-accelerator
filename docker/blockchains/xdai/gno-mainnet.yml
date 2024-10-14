@@ -112,7 +112,7 @@ services:
     command:
       - lighthouse
       - beacon_node
-      - --network=mainnet
+      - --network=gnosis
       - --datadir=/root/.lighthouse
       - --debug-level=info
       - --port=9010
