@@ -21,6 +21,7 @@ services:
 #          memory: 32G
 #    mem_swappiness: 0
     command:
+      - --chain=gnosis
       - --datadir=/home/erigon/.local/share/erigon
       - --prune=hrtc
       - --port=30306
