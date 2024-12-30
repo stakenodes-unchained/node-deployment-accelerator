@@ -10,7 +10,7 @@ x-logging: &logging
 services:
   eth-execution:
     <<: *logging
-    image: thorax/erigon:v2.60.1
+    image: erigontech/erigon:v2.60.10
     container_name: eth-execution
     restart: unless-stopped
     user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
@@ -48,13 +48,13 @@ services:
       - 9090
     ports:
       # P2P TCP (Default: 30303)
-      - 30303:30303/tcp
+      - 0.0.0.0:30303:30303/tcp
       # P2P UDP (Default: 30303)
-      - 30303:30303/udp
+      - 0.0.0.0:30303:30303/udp
       # BitTorrent TCP (Default: 42069)
-      - 42069:42069/tcp
+      - 0.0.0.0:42069:42069/tcp
       # BitTorrent UDP (Default: 42069)
-      - 42069:42069/udp
+      - 0.0.0.0:42069:42069/udp
       # Expose port to bind on localhost only,
       # preventing access from the general Internet
       # Prometheus TCP (Default: 6060)
@@ -64,7 +64,7 @@ services:
 
   eth-rpcdaemon:
     <<: *logging
-    image: thorax/erigon:v2.60.1
+    image: erigontech/erigon:v2.60.10
     container_name: eth-rpcdaemon
     restart: unless-stopped
     user: ${DOCKER_UID:-1000}:${DOCKER_GID:-1000}
@@ -136,9 +136,9 @@ services:
       - ./erigon/jwt.hex:/jwt.hex
     ports:
       # P2P TCP (Default: 9000)
-      - 9000:9000/tcp
+      - 0.0.0.0:9000:9000/tcp
       # P2P UDP (Default: 9000)
-      - 9000:9000/udp
+      - 0.0.0.0:9000:9000/udp
       # Expose ports to bind on localhost only,
       # preventing access from the general Internet
       # JSON RPC TCP (Default: 5052)
