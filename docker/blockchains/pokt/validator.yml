@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   pocket-node:
-    image: poktscan/pocket-core:BETA-MESH-RC-0.5.0-RC-0.11.1
+    image: poktscan/pocket-core:MESH-RC-0.5.1-RC-0.12.0
     container_name: pocket-node
     restart: unless-stopped
     healthcheck:
@@ -19,9 +19,9 @@ services:
       - "./node/.pocket/:/home/app/.pocket/"
     ports:
       # Tendermint P2P   
-      - "26656:26656"
+      - "0.0.0.0:26656:26656"
       # Tendermint JSON-RPC
-      - "26657:26657"
+      - "0.0.0.0:26657:26657"
       # Expose ports to bind on localhost,
       # but not for general Internet
       # Pocket JSON-RPC
