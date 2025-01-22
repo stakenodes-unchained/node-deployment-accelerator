@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   pocket-mesh:
-    image: poktscan/pocket-core:BETA-MESH-RC-0.5.0-RC-0.11.1
+    image: poktscan/pocket-core:BETA-MESH-RC-0.5.1-RC-0.12.0
     container_name: pocket-mesh
     restart: unless-stopped
     healthcheck:
